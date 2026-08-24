@@ -48,14 +48,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const matrixHeaderRow = document.getElementById('matrixHeaderRow');
   const matrixTableBody = document.getElementById('matrixTableBody');
   const finalizePollBtn = document.getElementById('finalizePollBtn');
+  const shareLinkInput = document.getElementById('shareLinkInput');
+  const copyShareLinkBtn = document.getElementById('copyShareLinkBtn');
 
   // Toast Container
   const toastContainer = document.getElementById('toastContainer');
 
   // -------------------------------------------------------------
-  // Navigation & View Switching
+  // Navigation, Routing & View Switching
   // -------------------------------------------------------------
-  function switchView(targetViewId) {
+  function switchView(targetViewId, updateHistory = true) {
     navBtns.forEach(btn => {
       if (btn.getAttribute('data-target') === targetViewId) {
         btn.classList.add('active');
@@ -74,8 +76,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (targetViewId === 'listView') {
       fetchPollsList();
+      if (updateHistory) history.pushState(null, '', '/polls');
+    } else if (targetViewId === 'createView') {
+      if (updateHistory) history.pushState(null, '', '/');
+    } else if (targetViewId === 'detailView' && activePollId) {
+      if (updateHistory) history.pushState(null, '', `/poll/${activePollId}`);
     }
   }
+
+  function handleURLRoute() {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+
+    // Match /poll/:id or #poll/:id
+    const pathMatch = path.match(/^\/poll\/([a-zA-Z0-9-]+)/);
+    const hashMatch = hash.match(/^#poll\/([a-zA-Z0-9-]+)/);
+
+    const pollId = pathMatch ? pathMatch[1] : (hashMatch ? hashMatch[1] : null);
+
+    if (pollId) {
+      activePollId = pollId;
+      loadPollDetail(pollId);
+      switchView('detailView', false);
+    } else if (path === '/polls' || hash === '#polls') {
+      switchView('listView', false);
+    } else {
+      switchView('createView', false);
+    }
+  }
+
+  window.addEventListener('popstate', handleURLRoute);
 
   navBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -86,6 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   brandLogo.addEventListener('click', () => switchView('createView'));
   gotoCreateBtn.addEventListener('click', () => switchView('createView'));
+
+  if (copyShareLinkBtn && shareLinkInput) {
+    copyShareLinkBtn.addEventListener('click', () => {
+      if (!shareLinkInput.value) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareLinkInput.value)
+          .then(() => showToast('Shareable invite link copied to clipboard!', 'success'))
+          .catch(() => fallbackCopy());
+      } else {
+        fallbackCopy();
+      }
+    });
+  }
+
+  function fallbackCopy() {
+    shareLinkInput.select();
+    document.execCommand('copy');
+    showToast('Shareable invite link copied to clipboard!', 'success');
+  }
 
   // -------------------------------------------------------------
   // Time Slot Management in Create Form
@@ -276,6 +325,15 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         pollStatusBadge.textContent = 'Active Poll';
         pollStatusBadge.className = 'badge badge-active';
+      }
+
+      // Update Shareable Invite Link Input & Address Bar URL
+      const shareUrl = `${window.location.origin}/poll/${pollId}`;
+      if (shareLinkInput) {
+        shareLinkInput.value = shareUrl;
+      }
+      if (window.location.pathname !== `/poll/${pollId}`) {
+        history.pushState(null, '', `/poll/${pollId}`);
       }
 
       // Render Guest Voting Choices Form
@@ -552,4 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }[m];
     });
   }
+
+  // Initial Route Check on Load
+  handleURLRoute();
 });
