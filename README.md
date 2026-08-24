@@ -1,4 +1,4 @@
-# IGES Meeting Scheduler
+# Meeting Scheduler
 
 Full-stack Doodle-like meeting scheduler application built with Express, SQLite, and Vanilla HTML/CSS/JS.
 

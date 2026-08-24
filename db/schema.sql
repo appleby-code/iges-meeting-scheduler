@@ -1,4 +1,4 @@
--- IGES Meeting Scheduler Database Schema & Aggregation Views
+-- Meeting Scheduler Database Schema & Aggregation Views
 
 CREATE TABLE IF NOT EXISTS polls (
   id TEXT PRIMARY KEY,

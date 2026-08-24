@@ -1,4 +1,4 @@
-// IGES Meeting Scheduler Client Application Logic
+// Meeting Scheduler Client Application Logic
 
 document.addEventListener('DOMContentLoaded', () => {
   // App State

@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 1. Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'IGES Meeting Scheduler Server Running' });
+  res.json({ status: 'ok', message: 'Meeting Scheduler Server Running' });
 });
 
 // 2. Create Poll

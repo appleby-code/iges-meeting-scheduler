@@ -1,5 +1,5 @@
 {
-  "name": "iges-meeting-scheduler",
+  "name": "meeting-scheduler",
   "version": "1.0.0",
   "description": "Full-stack Doodle-like meeting scheduler application with Express, SQLite, and Vanilla JS",
   "main": "server.js",
