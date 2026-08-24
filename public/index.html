@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IGES Behaviour Lab | Meeting Consensus Scheduler</title>
+  <meta name="description" content="Behaviour change science that makes sustainability second nature. Plan and schedule consensus meetings efficiently.">
+  <!-- Google Fonts: Mulish & Literata -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Mulish:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Brand Decorative Background Shapes -->
+  <div class="brand-bg-shape bg-shape-ocean"></div>
+  <div class="brand-bg-shape bg-shape-yellow"></div>
+  <div class="brand-bg-shape bg-shape-forest"></div>
+
+  <!-- Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" id="brandLogo">
+        <!-- Behaviour Lab Overlapping Semi-Circles SVG Logo -->
+        <svg class="brand-logo-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- Sun Yellow Top-Left Semi-Circle -->
+          <path d="M 50 10 A 40 40 0 0 0 50 90 Z" fill="#FDB916" />
+          <!-- Ocean Blue Bottom-Right Semi-Circle with opacity overlay -->
+          <path d="M 50 30 A 40 40 0 0 1 50 110 Z" fill="#71B0C1" style="mix-blend-mode: multiply; opacity: 0.85;" />
+        </svg>
+        <div class="brand-text">
+          <div class="brand-title">IGES <span class="brand-title-bold">Behaviour Lab</span></div>
+          <div class="brand-subtitle">The Science of Change</div>
+        </div>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-btn active" id="navCreateBtn" data-target="createView">
+          <i class="fa-solid fa-plus-circle"></i> Create Poll
+        </button>
+        <button class="nav-btn" id="navListBtn" data-target="listView">
+          <i class="fa-solid fa-list-ul"></i> All Polls
+        </button>
+        <button class="nav-btn" id="navDetailBtn" data-target="detailView">
+          <i class="fa-solid fa-chart-column"></i> Active Dashboard
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Top Brand Quote Callout Banner -->
+  <div class="brand-callout-bar">
+    <div class="callout-container">
+      <div class="callout-quote font-secondary">"We created the problem, we can create the solution."</div>
+      <div class="callout-vision">Behaviour change science that makes sustainability second nature.</div>
+    </div>
+  </div>
+
+  <!-- Main App Container -->
+  <main class="main-content">
+    
+    <!-- View 1: Create Poll Form -->
+    <section id="createView" class="view-section active-view">
+      <div class="glass-card form-card">
+        <div class="card-header">
+          <div class="header-tag"><span class="badge-brand">Meeting Planner</span></div>
+          <h2><i class="fa-solid fa-calendar-plus accent-icon"></i> Create a New Meeting Poll</h2>
+          <p>Propose time slots and invite your team to find consensus quickly.</p>
+        </div>
+
+        <form id="createPollForm" class="poll-form">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="pollTitle"><i class="fa-solid fa-heading"></i> Event Title <span class="required">*</span></label>
+              <input type="text" id="pollTitle" placeholder="e.g. Circular Economy & Sustainability Strategy Sync" required>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="pollDescription"><i class="fa-solid fa-align-left"></i> Description / Agenda</label>
+              <textarea id="pollDescription" rows="3" placeholder="Add meeting context, objectives, or instructions for participants..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="organizerName"><i class="fa-solid fa-user"></i> Organizer Name <span class="required">*</span></label>
+              <input type="text" id="organizerName" placeholder="e.g. Alex Morgan" required>
+            </div>
+
+            <div class="form-group">
+              <label for="pollLocation"><i class="fa-solid fa-location-dot"></i> Location / Link</label>
+              <input type="text" id="pollLocation" placeholder="e.g. IGES Conference Room 402 / Zoom">
+            </div>
+          </div>
+
+          <div class="slots-section">
+            <div class="slots-header">
+              <h3><i class="fa-clock fa-regular accent-icon"></i> Proposed Time Slots <span class="required">*</span></h3>
+              <div class="preset-buttons">
+                <span class="preset-label">Quick Add:</span>
+                <button type="button" class="btn-sm btn-secondary" id="preset1Btn">+ Tomorrow 10:00 AM</button>
+                <button type="button" class="btn-sm btn-secondary" id="preset2Btn">+ Tomorrow 2:00 PM</button>
+                <button type="button" class="btn-sm btn-secondary" id="preset3Btn">+ Day After 11:00 AM</button>
+              </div>
+            </div>
+
+            <div id="slotsContainer" class="slots-container">
+              <!-- Time slot inputs inserted dynamically -->
+            </div>
+
+            <button type="button" id="addSlotBtn" class="btn-outline">
+              <i class="fa-solid fa-plus"></i> Add Another Time Slot
+            </button>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="submitCreatePoll" class="btn-primary btn-lg">
+              <i class="fa-solid fa-paper-plane"></i> Create Poll & Share
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- View 2: All Polls List View -->
+    <section id="listView" class="view-section">
+      <div class="glass-card">
+        <div class="card-header flex-between">
+          <div>
+            <div class="header-tag"><span class="badge-brand">Active Directory</span></div>
+            <h2><i class="fa-solid fa-folder-open accent-icon"></i> Existing Meeting Polls</h2>
+            <p>Select a poll to cast votes or view real-time consensus results.</p>
+          </div>
+          <button class="btn-secondary" id="refreshPollsBtn">
+            <i class="fa-solid fa-rotate"></i> Refresh
+          </button>
+        </div>
+
+        <div id="pollsListContainer" class="polls-grid">
+          <!-- Dynamic Poll Cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- View 3: Poll Detail, Guest Voting & Results Dashboard View -->
+    <section id="detailView" class="view-section">
+      <div id="noPollSelected" class="glass-card placeholder-card">
+        <div class="brandmark-watermark"></div>
+        <i class="fa-solid fa-calendar-xmark placeholder-icon"></i>
+        <h3 class="font-secondary">No Poll Selected</h3>
+        <p>Please select an existing poll from "All Polls" or create a new poll to view voting details.</p>
+        <button class="btn-primary" id="gotoCreateBtn">Create New Poll</button>
+      </div>
+
+      <div id="pollDetailContent" class="poll-detail-wrapper hidden">
+        <!-- Event Overview Banner -->
+        <div class="glass-card banner-card">
+          <div class="banner-header">
+            <div>
+              <span id="pollStatusBadge" class="badge badge-active">Active Poll</span>
+              <h1 id="detailTitle" class="poll-banner-title font-secondary">Meeting Title</h1>
+              <p id="detailDescription" class="poll-banner-desc">Meeting Description...</p>
+            </div>
+            <div class="banner-meta">
+              <div class="meta-item">
+                <i class="fa-solid fa-user-gear"></i>
+                <div>
+                  <span class="meta-label">Organizer</span>
+                  <span id="detailOrganizer" class="meta-value">-</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-location-pin"></i>
+                <div>
+                  <span class="meta-label">Location</span>
+                  <span id="detailLocation" class="meta-value">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layout Grid: Left Voting Form, Right Consensus Dashboard -->
+        <div class="dashboard-grid">
+          
+          <!-- Left Column: Guest Voting Section -->
+          <div class="glass-card vote-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-vote-yea accent-icon"></i> Submit Your Availability</h2>
+              <p>Enter your name and mark your availability for each proposed time slot.</p>
+            </div>
+
+            <form id="voteForm">
+              <div class="form-group">
+                <label for="guestName"><i class="fa-solid fa-user-tag"></i> Your Name <span class="required">*</span></label>
+                <input type="text" id="guestName" placeholder="e.g. Alice / Participant" required>
+              </div>
+
+              <div class="vote-slots-list" id="voteSlotsContainer">
+                <!-- Dynamic Slot Voting Rows -->
+              </div>
+
+              <button type="submit" id="submitVoteBtn" class="btn-primary full-width btn-lg">
+                <i class="fa-solid fa-check-double"></i> Submit Availability
+              </button>
+            </form>
+          </div>
+
+          <!-- Right Column: Aggregation Results & Consensus Dashboard -->
+          <div class="results-column">
+            
+            <!-- Top Consensus Card -->
+            <div class="glass-card consensus-card" id="topConsensusCard">
+              <div class="consensus-icon-wrapper">
+                <i class="fa-solid fa-crown crown-icon"></i>
+              </div>
+              <div class="consensus-content">
+                <span class="consensus-tag">Top Consensus Option</span>
+                <h3 id="topSlotLabel" class="font-secondary">Loading top slot...</h3>
+                <p id="topSlotStats">0 Yes votes</p>
+              </div>
+            </div>
+
+            <!-- Aggregated Results Breakdown -->
+            <div class="glass-card breakdown-card">
+              <div class="card-header flex-between">
+                <div>
+                  <h2><i class="fa-solid fa-chart-pie accent-icon"></i> Voting Aggregation</h2>
+                  <p id="totalParticipantsCount">Total Participants: 0</p>
+                </div>
+                <button class="btn-outline btn-sm" id="finalizePollBtn">
+                  <i class="fa-solid fa-lock"></i> Finalize Poll
+                </button>
+              </div>
+
+              <div id="resultsBreakdownContainer" class="breakdown-list">
+                <!-- Dynamic aggregated bar cards -->
+              </div>
+            </div>
+
+            <!-- Guest Matrix Table -->
+            <div class="glass-card matrix-card">
+              <div class="card-header">
+                <h2><i class="fa-solid fa-table-cells accent-icon"></i> Participant Availability Matrix</h2>
+                <p>Detailed vote breakdown from all guests.</p>
+              </div>
+              <div class="table-responsive">
+                <table class="matrix-table" id="matrixTable">
+                  <thead>
+                    <tr id="matrixHeaderRow">
+                      <th>Participant</th>
+                      <!-- Dynamic slot headers -->
+                    </tr>
+                  </thead>
+                  <tbody id="matrixTableBody">
+                    <!-- Dynamic guest matrix rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div> <!-- End Right Column -->
+
+        </div> <!-- End Dashboard Grid -->
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

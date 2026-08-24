@@ -1,0 +1,25 @@
+{
+  "name": "iges-meeting-scheduler",
+  "version": "1.0.0",
+  "description": "Full-stack Doodle-like meeting scheduler application with Express, SQLite, and Vanilla JS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "doodle",
+    "scheduler",
+    "express",
+    "sqlite",
+    "vanilla-js"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.1"
+  }
+}

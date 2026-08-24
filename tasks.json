@@ -1,0 +1,42 @@
+{
+  "project": "IGES Meeting Scheduler",
+  "version": "1.0.0",
+  "tasks": [
+    {
+      "id": "TASK-1",
+      "name": "Project & Workspace Setup",
+      "description": "Initialize Node.js project, package.json, tasks tracking, and folder structure.",
+      "status": "completed"
+    },
+    {
+      "id": "TASK-2",
+      "name": "Database Schema & Views Creation",
+      "description": "Create SQLite DDL schema for polls, options, responses, votes, and aggregation view v_poll_results.",
+      "status": "completed"
+    },
+    {
+      "id": "TASK-3",
+      "name": "Express REST API Implementation",
+      "description": "Implement Node.js/Express server endpoints for poll creation, voting, and aggregated results.",
+      "status": "completed"
+    },
+    {
+      "id": "TASK-4",
+      "name": "Vanilla JS & CSS Frontend Development",
+      "description": "Build responsive SPA UI with poll creation form, dynamic time slot picker, guest voting grid, and analytics dashboard.",
+      "status": "completed"
+    },
+    {
+      "id": "TASK-5",
+      "name": "Local Server Launch & Health Check",
+      "description": "Spin up Express server on localhost:3000 and verify database initialization and API health.",
+      "status": "completed"
+    },
+    {
+      "id": "TASK-6",
+      "name": "Automated E2E Testing & Validation",
+      "description": "Execute automated integration testing to create a poll with 3 slots, submit 2 guest responses, and validate dashboard vote counts.",
+      "status": "completed"
+    }
+  ]
+}
