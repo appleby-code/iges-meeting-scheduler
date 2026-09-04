@@ -966,3 +966,56 @@ input:focus, textarea:focus, select:focus {
   from { opacity: 0; transform: translateX(50px); }
   to { opacity: 1; transform: translateX(0); }
 }
+
+/* Delete Button & Banner Header Actions */
+.banner-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-danger-sm {
+  background: rgba(238, 118, 35, 0.12);
+  color: var(--tropical-orange);
+  border: 1.5px solid var(--tropical-orange);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+}
+
+.btn-danger-sm:hover {
+  background: var(--tropical-orange);
+  color: var(--bg-white);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(238, 118, 35, 0.3);
+}
+
+.poll-card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.poll-card-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-subtle);
+  padding: 6px 8px;
+  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.poll-card-delete-btn:hover {
+  color: var(--tropical-orange);
+  background: var(--tropical-orange-light);
+}

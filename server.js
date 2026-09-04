@@ -184,6 +184,24 @@ app.post('/api/polls/:id/finalize', async (req, res) => {
   }
 });
 
+// 7. Delete Poll (Manual Deletion)
+app.delete('/api/polls/:id', async (req, res) => {
+  try {
+    const pollId = req.params.id;
+    const poll = await get(`SELECT * FROM polls WHERE id = ?`, [pollId]);
+
+    if (!poll) {
+      return res.status(404).json({ error: 'Poll not found.' });
+    }
+
+    await run(`DELETE FROM polls WHERE id = ?`, [pollId]);
+    res.json({ message: 'Poll deleted successfully.', id: pollId });
+  } catch (err) {
+    console.error('Error deleting poll:', err);
+    res.status(500).json({ error: 'Internal server error deleting poll.' });
+  }
+});
+
 // Catch-all route to serve index.html for SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

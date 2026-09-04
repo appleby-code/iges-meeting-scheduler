@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const matrixHeaderRow = document.getElementById('matrixHeaderRow');
   const matrixTableBody = document.getElementById('matrixTableBody');
   const finalizePollBtn = document.getElementById('finalizePollBtn');
+  const deletePollBtn = document.getElementById('deletePollBtn');
   const shareLinkInput = document.getElementById('shareLinkInput');
   const copyShareLinkBtn = document.getElementById('copyShareLinkBtn');
 
@@ -441,13 +442,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'poll-card';
         card.innerHTML = `
-          <div class="poll-card-title">${escapeHtml(poll.title)}</div>
+          <div class="poll-card-header-row">
+            <div class="poll-card-title">${escapeHtml(poll.title)}</div>
+            <button type="button" class="poll-card-delete-btn" title="Delete Poll">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
           <div class="poll-card-meta">
             <span><i class="fa-solid fa-user"></i> ${escapeHtml(poll.organizer_name)}</span>
             <span><i class="fa-solid fa-location-dot"></i> ${escapeHtml(poll.location || 'N/A')}</span>
             <span><i class="fa-solid fa-clock"></i> ${new Date(poll.created_at).toLocaleString()}</span>
           </div>
         `;
+
+        const cardDeleteBtn = card.querySelector('.poll-card-delete-btn');
+        if (cardDeleteBtn) {
+          cardDeleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deletePoll(poll.id, poll.title);
+          });
+        }
+
         card.addEventListener('click', () => {
           activePollId = poll.id;
           loadPollDetail(activePollId);
@@ -750,6 +765,47 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(err.message, 'error');
     }
   });
+
+  // -------------------------------------------------------------
+  // Manual Delete Poll Action
+  // -------------------------------------------------------------
+  async function deletePoll(pollId, pollTitle = 'this poll') {
+    if (!pollId) return;
+
+    const confirmed = confirm(`Are you sure you want to permanently delete "${pollTitle}" and all of its voting results?\n\nThis action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/polls/${pollId}`, {
+        method: 'DELETE'
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete poll.');
+
+      showToast('Poll deleted successfully.', 'success');
+
+      if (activePollId === pollId) {
+        activePollId = null;
+        activePollData = null;
+        pollDetailContent.classList.add('hidden');
+        noPollSelected.classList.remove('hidden');
+      }
+
+      fetchPollsList();
+      switchView('listView');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  if (deletePollBtn) {
+    deletePollBtn.addEventListener('click', () => {
+      if (activePollData && activePollId) {
+        deletePoll(activePollId, activePollData.poll.title);
+      }
+    });
+  }
 
   // -------------------------------------------------------------
   // Utility Functions

@@ -144,7 +144,7 @@
           <div>
             <div class="header-tag"><span class="badge-brand">Active Directory</span></div>
             <h2><i class="fa-solid fa-folder-open accent-icon"></i> Existing Meeting Polls</h2>
-            <p>Select a poll to cast votes or view real-time consensus results.</p>
+            <p>All polls and results are saved permanently until you manually delete them.</p>
           </div>
           <button class="btn-secondary" id="refreshPollsBtn">
             <i class="fa-solid fa-rotate"></i> Refresh
@@ -172,7 +172,12 @@
         <div class="glass-card banner-card">
           <div class="banner-header">
             <div>
-              <span id="pollStatusBadge" class="badge badge-active">Active Poll</span>
+              <div class="banner-status-row flex-between">
+                <span id="pollStatusBadge" class="badge badge-active">Active Poll</span>
+                <button type="button" id="deletePollBtn" class="btn-danger-sm" title="Permanently Delete Poll & Results">
+                  <i class="fa-solid fa-trash-can"></i> Delete Poll
+                </button>
+              </div>
               <h1 id="detailTitle" class="poll-banner-title font-secondary">Meeting Title</h1>
               <p id="detailDescription" class="poll-banner-desc">Meeting Description...</p>
             </div>
