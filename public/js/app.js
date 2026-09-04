@@ -14,9 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const navBtns = document.querySelectorAll('.nav-btn');
   const viewSections = document.querySelectorAll('.view-section');
   const brandLogo = document.getElementById('brandLogo');
+  const mainNavTabs = document.getElementById('mainNavTabs');
+  const navCreateBtn = document.getElementById('navCreateBtn');
+  const navListBtn = document.getElementById('navListBtn');
+  const guestNavBadge = document.getElementById('guestNavBadge');
   const userTimeZoneSelect = document.getElementById('userTimeZoneSelect');
   const creatorTimeZoneSelect = document.getElementById('creatorTimeZoneSelect');
   const detailTimezoneDisplay = document.getElementById('detailTimezoneDisplay');
+
+  let isGuestMode = false;
 
   // Form Elements
   const createPollForm = document.getElementById('createPollForm');
@@ -215,7 +221,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   // Navigation, Routing & View Switching
   // -------------------------------------------------------------
+  function slugify(text) {
+    if (!text) return 'meeting';
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '') || 'meeting';
+  }
+
+  function setGuestMode(enabled) {
+    isGuestMode = !!enabled;
+    if (isGuestMode) {
+      if (navCreateBtn) navCreateBtn.classList.add('hidden');
+      if (navListBtn) navListBtn.classList.add('hidden');
+      if (guestNavBadge) guestNavBadge.classList.remove('hidden');
+    } else {
+      if (navCreateBtn) navCreateBtn.classList.remove('hidden');
+      if (navListBtn) navListBtn.classList.remove('hidden');
+      if (guestNavBadge) guestNavBadge.classList.add('hidden');
+    }
+  }
+
   function switchView(targetViewId, updateHistory = true) {
+    if (isGuestMode && targetViewId !== 'detailView') {
+      showToast('Invitees are restricted to viewing their invited poll.', 'info');
+      targetViewId = 'detailView';
+    }
+
     navBtns.forEach(btn => {
       if (btn.getAttribute('data-target') === targetViewId) {
         btn.classList.add('active');
@@ -238,7 +275,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (targetViewId === 'createView') {
       if (updateHistory) history.pushState(null, '', '/');
     } else if (targetViewId === 'detailView' && activePollId) {
-      if (updateHistory) history.pushState(null, '', `/poll/${activePollId}`);
+      if (updateHistory && activePollData) {
+        const titleSlug = slugify(activePollData.poll.title);
+        history.pushState(null, '', `/poll/${activePollId}/${titleSlug}`);
+      }
     }
   }
 
@@ -246,19 +286,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const path = window.location.pathname;
     const hash = window.location.hash;
 
-    // Match /poll/:id or #poll/:id
+    // Match /poll/:id or /poll/:id/:slug or #poll/:id
     const pathMatch = path.match(/^\/poll\/([a-zA-Z0-9-]+)/);
     const hashMatch = hash.match(/^#poll\/([a-zA-Z0-9-]+)/);
 
     const pollId = pathMatch ? pathMatch[1] : (hashMatch ? hashMatch[1] : null);
 
     if (pollId) {
+      setGuestMode(true);
       activePollId = pollId;
       loadPollDetail(pollId);
       switchView('detailView', false);
     } else if (path === '/polls' || hash === '#polls') {
+      setGuestMode(false);
       switchView('listView', false);
     } else {
+      setGuestMode(false);
       switchView('createView', false);
     }
   }
@@ -272,7 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  brandLogo.addEventListener('click', () => switchView('createView'));
+  brandLogo.addEventListener('click', () => {
+    setGuestMode(false);
+    switchView('createView');
+  });
   gotoCreateBtn.addEventListener('click', () => switchView('createView'));
 
   if (copyShareLinkBtn && shareLinkInput) {
@@ -510,13 +556,14 @@ document.addEventListener('DOMContentLoaded', () => {
         pollStatusBadge.className = 'badge badge-active';
       }
 
-      // Update Shareable Invite Link Input & Address Bar URL
-      const shareUrl = `${window.location.origin}/poll/${pollId}`;
+      // Update Shareable Invite Link Input & Address Bar URL with poll title slug
+      const titleSlug = slugify(data.poll.title);
+      const shareUrl = `${window.location.origin}/poll/${pollId}/${titleSlug}`;
       if (shareLinkInput) {
         shareLinkInput.value = shareUrl;
       }
-      if (window.location.pathname !== `/poll/${pollId}`) {
-        history.pushState(null, '', `/poll/${pollId}`);
+      if (!window.location.pathname.startsWith(`/poll/${pollId}`)) {
+        history.pushState(null, '', `/poll/${pollId}/${titleSlug}`);
       }
 
       // Render Guest Voting Choices Form

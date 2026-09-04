@@ -36,7 +36,7 @@
         </div>
       </div>
       <div class="header-right">
-        <nav class="nav-tabs">
+        <nav class="nav-tabs" id="mainNavTabs">
           <button class="nav-btn active" id="navCreateBtn" data-target="createView">
             <i class="fa-solid fa-plus-circle"></i> Create Poll
           </button>
@@ -47,6 +47,9 @@
             <i class="fa-solid fa-chart-column"></i> Active Dashboard
           </button>
         </nav>
+        <div id="guestNavBadge" class="guest-nav-badge hidden">
+          <i class="fa-solid fa-envelope-open-text"></i> Guest Invitation View
+        </div>
         <div class="timezone-selector-card" title="Viewer local time zone auto-detected. Select to change timezone.">
           <i class="fa-solid fa-earth-americas tz-icon"></i>
           <span class="tz-label">Time Zone:</span>

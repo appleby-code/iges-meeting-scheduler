@@ -1019,3 +1019,23 @@ input:focus, textarea:focus, select:focus {
   color: var(--tropical-orange);
   background: var(--tropical-orange-light);
 }
+
+/* Guest Navigation Badge */
+.guest-nav-badge {
+  background: var(--sun-yellow-light);
+  color: var(--text-black);
+  border: 1.5px solid var(--sun-yellow);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(253, 185, 22, 0.2);
+}
+
+.guest-nav-badge i {
+  color: var(--forest-green);
+  font-size: 1rem;
+}
