@@ -6,10 +6,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let activePollData = null;
   let selectedVotes = {}; // { [option_id]: 'yes' | 'maybe' | 'no' }
 
+  // Viewer Time Zone State
+  const defaultLocalTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  let activeTimeZone = localStorage.getItem('meeting_scheduler_tz') || defaultLocalTz;
+
   // DOM Elements
   const navBtns = document.querySelectorAll('.nav-btn');
   const viewSections = document.querySelectorAll('.view-section');
   const brandLogo = document.getElementById('brandLogo');
+  const userTimeZoneSelect = document.getElementById('userTimeZoneSelect');
+  const creatorTimeZoneSelect = document.getElementById('creatorTimeZoneSelect');
+  const detailTimezoneDisplay = document.getElementById('detailTimezoneDisplay');
 
   // Form Elements
   const createPollForm = document.getElementById('createPollForm');
@@ -53,6 +60,156 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Toast Container
   const toastContainer = document.getElementById('toastContainer');
+
+  // -------------------------------------------------------------
+  // Time Zone Handling & Dropdown Setup
+  // -------------------------------------------------------------
+  const timezoneList = [
+    { value: defaultLocalTz, label: `Local (${defaultLocalTz})` },
+    { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
+    { value: 'America/New_York', label: 'US/Eastern (New York)' },
+    { value: 'America/Chicago', label: 'US/Central (Chicago)' },
+    { value: 'America/Denver', label: 'US/Mountain (Denver)' },
+    { value: 'America/Los_Angeles', label: 'US/Pacific (Los Angeles)' },
+    { value: 'Europe/London', label: 'UK/London (GMT/BST)' },
+    { value: 'Europe/Paris', label: 'Europe/Paris (CET/CEST)' },
+    { value: 'Europe/Berlin', label: 'Europe/Berlin (CET/CEST)' },
+    { value: 'Asia/Dubai', label: 'Asia/Dubai (GST)' },
+    { value: 'Asia/Kolkata', label: 'Asia/Kolkata (IST)' },
+    { value: 'Asia/Singapore', label: 'Asia/Singapore (SGT)' },
+    { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST)' },
+    { value: 'Australia/Sydney', label: 'Australia/Sydney (AEST)' },
+    { value: 'Pacific/Auckland', label: 'Pacific/Auckland (NZST)' }
+  ];
+
+  function populateTimeZoneDropdown(selectElement, selectedValue) {
+    if (!selectElement) return;
+    selectElement.innerHTML = '';
+    const seen = new Set();
+    timezoneList.forEach(tz => {
+      if (!seen.has(tz.value)) {
+        seen.add(tz.value);
+        const opt = document.createElement('option');
+        opt.value = tz.value;
+        opt.textContent = tz.label;
+        if (tz.value === selectedValue) opt.selected = true;
+        selectElement.appendChild(opt);
+      }
+    });
+  }
+
+  populateTimeZoneDropdown(userTimeZoneSelect, activeTimeZone);
+  populateTimeZoneDropdown(creatorTimeZoneSelect, activeTimeZone);
+
+  if (userTimeZoneSelect) {
+    userTimeZoneSelect.addEventListener('change', () => {
+      activeTimeZone = userTimeZoneSelect.value;
+      localStorage.setItem('meeting_scheduler_tz', activeTimeZone);
+      if (activePollData && activePollId) {
+        loadPollDetail(activePollId);
+      }
+    });
+  }
+
+  function getTimeZoneShortCode(dateObj, tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short', timeZone: tz }).formatToParts(dateObj);
+      const tzPart = parts.find(p => p.type === 'timeZoneName');
+      return tzPart ? tzPart.value : tz;
+    } catch (e) {
+      return tz;
+    }
+  }
+
+  function parseDateTimeInTimeZone(dateStr, timeStr, timeZone) {
+    if (!dateStr || !timeStr) return new Date();
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hour, minute] = timeStr.split(':').map(Number);
+
+    let dateGuess = new Date(Date.UTC(year, month - 1, day, hour, minute));
+
+    for (let i = 0; i < 3; i++) {
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone: timeZone || activeTimeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      });
+
+      const parts = dtf.formatToParts(dateGuess);
+      const p = {};
+      parts.forEach(pt => p[pt.type] = pt.value);
+
+      let formattedHour = parseInt(p.hour, 10);
+      if (formattedHour === 24) formattedHour = 0;
+
+      const formattedDate = new Date(Date.UTC(
+        parseInt(p.year, 10),
+        parseInt(p.month, 10) - 1,
+        parseInt(p.day, 10),
+        formattedHour,
+        parseInt(p.minute, 10)
+      ));
+
+      const targetLocalMillis = Date.UTC(year, month - 1, day, hour, minute);
+      const diff = targetLocalMillis - formattedDate.getTime();
+
+      if (diff === 0) break;
+      dateGuess = new Date(dateGuess.getTime() + diff);
+    }
+
+    return dateGuess;
+  }
+
+  function formatSlotTime(startTimeStr, endTimeStr, timeZone) {
+    if (!startTimeStr) return 'Unspecified Time';
+    const tz = timeZone || activeTimeZone;
+
+    let startDate = new Date(startTimeStr);
+    let endDate = endTimeStr ? new Date(endTimeStr) : null;
+
+    if (isNaN(startDate.getTime())) {
+      return startTimeStr + (endTimeStr ? ' - ' + endTimeStr : '');
+    }
+
+    try {
+      const dateStr = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: tz
+      }).format(startDate);
+
+      const startTimeFormatted = new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: tz
+      }).format(startDate);
+
+      let endTimeFormatted = '';
+      if (endDate && !isNaN(endDate.getTime())) {
+        endTimeFormatted = new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: tz
+        }).format(endDate);
+      }
+
+      const tzCode = getTimeZoneShortCode(startDate, tz);
+      const timeRange = endTimeFormatted ? `${startTimeFormatted} – ${endTimeFormatted}` : startTimeFormatted;
+
+      return `${dateStr} • ${timeRange} ${tzCode}`;
+    } catch (err) {
+      return startTimeStr + (endTimeStr ? ' - ' + endTimeStr : '');
+    }
+  }
 
   // -------------------------------------------------------------
   // Navigation, Routing & View Switching
@@ -208,6 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const organizer_name = document.getElementById('organizerName').value.trim();
     const location = document.getElementById('pollLocation').value.trim();
 
+    const creatorTz = creatorTimeZoneSelect ? creatorTimeZoneSelect.value : activeTimeZone;
     const slotElements = slotsContainer.querySelectorAll('.slot-item');
     const options = [];
 
@@ -217,10 +375,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const endVal = item.querySelector('.slot-end').value;
 
       if (dateVal && startVal && endVal) {
-        const slot_label = `${dateVal} ${startVal} - ${endVal}`;
+        // Construct date object in creator's selected timezone
+        const startDateObj = parseDateTimeInTimeZone(dateVal, startVal, creatorTz);
+        const endDateObj = parseDateTimeInTimeZone(dateVal, endVal, creatorTz);
+
+        const start_time = !isNaN(startDateObj.getTime()) ? startDateObj.toISOString() : `${dateVal}T${startVal}:00`;
+        const end_time = !isNaN(endDateObj.getTime()) ? endDateObj.toISOString() : `${dateVal}T${endVal}:00`;
+        const slot_label = formatSlotTime(start_time, end_time, activeTimeZone);
+
         options.push({
-          start_time: `${dateVal}T${startVal}:00`,
-          end_time: `${dateVal}T${endVal}:00`,
+          start_time,
+          end_time,
           slot_label
         });
       }
@@ -318,6 +483,9 @@ document.addEventListener('DOMContentLoaded', () => {
       detailDescription.textContent = data.poll.description || 'No additional agenda provided.';
       detailOrganizer.textContent = data.poll.organizer_name;
       detailLocation.textContent = data.poll.location || 'Remote / Online';
+      if (detailTimezoneDisplay) {
+        detailTimezoneDisplay.textContent = `${getTimeZoneShortCode(new Date(), activeTimeZone)} (${activeTimeZone})`;
+      }
 
       if (data.poll.status === 'finalized') {
         pollStatusBadge.textContent = 'Finalized';
@@ -358,6 +526,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Default choice is 'yes' for easy submission
       selectedVotes[opt.option_id] = 'yes';
 
+      const formattedLabel = formatSlotTime(opt.start_time, opt.end_time, activeTimeZone);
+
       const row = document.createElement('div');
       row.className = 'vote-slot-row';
       row.setAttribute('data-option-id', opt.option_id);
@@ -365,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.innerHTML = `
         <div class="slot-label-text">
           <i class="fa-solid fa-calendar-day accent-icon"></i>
-          <span>${escapeHtml(opt.slot_label)}</span>
+          <span>${escapeHtml(formattedLabel)}</span>
         </div>
         <div class="availability-options">
           <button type="button" class="choice-btn selected" data-choice="yes">
@@ -452,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (topOption && totalParticipants > 0) {
-      topSlotLabel.textContent = topOption.slot_label;
+      topSlotLabel.textContent = formatSlotTime(topOption.start_time, topOption.end_time, activeTimeZone);
       topSlotStats.textContent = `${topOption.yes_count} Yes vote(s) out of ${totalParticipants} participant(s)`;
     } else {
       topSlotLabel.textContent = 'Awaiting initial responses';
@@ -472,12 +642,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const noPct = total > 0 ? ((no / total) * 100).toFixed(0) : 0;
 
       const isFinalized = data.poll.finalized_slot_id === opt.option_id;
+      const formattedLabel = formatSlotTime(opt.start_time, opt.end_time, activeTimeZone);
 
       const item = document.createElement('div');
       item.className = 'breakdown-item';
       item.innerHTML = `
         <div class="breakdown-header">
-          <span>${escapeHtml(opt.slot_label)} ${isFinalized ? '<span class="badge badge-finalized">Finalized Winner</span>' : ''}</span>
+          <span>${escapeHtml(formattedLabel)} ${isFinalized ? '<span class="badge badge-finalized">Finalized Winner</span>' : ''}</span>
           <span class="stat-yes">${yes} Yes (${yesPct}%)</span>
         </div>
         <div class="progress-bar-container">
@@ -504,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
     matrixHeaderRow.innerHTML = '<th>Participant</th>';
     options.forEach(opt => {
       const th = document.createElement('th');
-      th.textContent = opt.slot_label;
+      th.textContent = formatSlotTime(opt.start_time, opt.end_time, activeTimeZone);
       matrixHeaderRow.appendChild(th);
     });
 
@@ -572,7 +743,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to finalize poll.');
 
-      showToast(`Poll finalized for: ${topOption.slot_label}`, 'success');
+      const finalizedLabel = formatSlotTime(topOption.start_time, topOption.end_time, activeTimeZone);
+      showToast(`Poll finalized for: ${finalizedLabel}`, 'success');
       loadPollDetail(activePollId);
     } catch (err) {
       showToast(err.message, 'error');
